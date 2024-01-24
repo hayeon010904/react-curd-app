@@ -1,13 +1,15 @@
 import { Component } from "react";
+
 export default class Count extends Component {
   constructor(props) {
     super(props);
-    this.addCount = this.addCount.bind(this);
+    // this.addCount = this.addCount.bind(this);!!!
     this.state = {
       count: 0,
     };
   }
   addCount = () => {
+    console.log(this, "aa");
     this.setState((s) => {
       console.log(s, "prev");
       return { count: s.count + 1 };
@@ -37,6 +39,7 @@ export default class Count extends Component {
           onClick={() => {
             this.minusCount();
           }}
+          disabled={this.state.count === 0}
         >
           -
         </button>
