@@ -1,23 +1,39 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
 import ExpenseFrom from "./components/ExpenseForm";
 import ExpenseList from "./components/ExpenseList";
 import Alert from "./components/Alert";
 const App = () => {
-  // const localItems = localStorage.getItem("Item");
+  const localItems = localStorage.getItem("Item");
+  console.log(JSON.parse(localItems));
 
-  const [expenses, setExpense] = useState([
-    // JSON.parse(localItems),
-    { id: 1, charge: "콜라", amount: 2000 },
-    { id: 2, charge: "빵", amount: 1000 },
-    { id: 3, charge: "맥북", amount: 2000 },
-  ]);
+  let initalExpenses;
+  if (localItems === null || localItems === '[]') {
+    initalExpenses = [
+      {
+        id: 1,
+        charge: "상품을 추가하세요",
+        amount: 1000,
+      },
+    ];
+  } else {
+    initalExpenses = JSON.parse(localItems);
+  }
+  const [expenses, setExpense] = useState(initalExpenses);
+  // JSON.parse(localItems),
+  console.log(expenses);
+  // { id: 1, charge: "콜라", amount: 2000 },
+  // { id: 2, charge: "빵", amount: 1000 },
+  // { id: 3, charge: "맥북", amount: 2000 },
+
   const [charge, setCharge] = useState("");
   const [amount, setAmount] = useState(0);
   const [edit, setEdit] = useState(false);
   const [id, setid] = useState("");
   const [alert, setAlert] = useState({ show: false });
-
+  useEffect(() => {
+    localStorage.setItem("Item", JSON.stringify(expenses));
+  }, [expenses]);
   const handleCharge = (e) => {
     setCharge(e.target.value);
   };
@@ -28,19 +44,21 @@ const App = () => {
     e.preventDefault();
     if (charge !== "" && amount > 0) {
       if (edit) {
-        const newExpenses = expenses.map((item) => {
-          return item.id === id ? { ...item, charge, amount } : item;
-        });
-        setExpense(newExpenses);
-        setEdit(false);
-        handleAlert({ type: "success", text: "아이템이 수정되었습니다" });
-        // localStorage.setItem("Item", `${JSON.stringify({ newExpenses })}`);
+        if (Array.isArray(expenses)) {
+          const newExpenses = expenses.map((item) => {
+            return item.id === id ? { ...item, charge, amount } : item;
+          });
+          setExpense(newExpenses);
+          setEdit(false);
+          handleAlert({ type: "success", text: "아이템이 수정되었습니다" });
+          localStorage.setItem("Item", JSON.stringify(newExpenses));
+        }
       } else {
         const newExpense = { id: crypto.randomUUID(), charge, amount };
         const newExpenses = [...expenses, newExpense];
         setExpense(newExpenses);
         handleAlert({ type: "success", text: "아이템이 생성되었습니다" });
-        // localStorage.setItem("Item", `${JSON.stringify({ newExpenses })}`);
+        localStorage.setItem("Item", JSON.stringify(newExpenses));
       }
 
       setCharge("");
@@ -106,6 +124,7 @@ const App = () => {
             initalExpenses={expenses}
             handleDelete={handleDelete}
             clearItems={clearItems}
+            expenses={expenses}
           />
         </div>
         <div
@@ -118,9 +137,11 @@ const App = () => {
           <p style={{ fontSize: "2rem" }}>
             총합계:
             <span>
-              {expenses.reduce((acc, curr) => {
-                return (acc += curr.amount);
-              }, 0)}
+              {Array.isArray(expenses)
+                ? expenses.reduce((acc, curr) => {
+                    return (acc += curr.amount);
+                  }, 0)
+                : 0}
               원
             </span>
           </p>
